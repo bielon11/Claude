@@ -1,0 +1,373 @@
+{
+  "_nota": "Plantilla para ElevenLabs Agents (Conversational AI). Revisa los nombres de campo en su panel: la API puede variar. Sustituye los valores <<...>>.",
+  "agent": {
+    "name": "Recepción La Taberna del Puerto",
+    "language": "es",
+    "first_message": "La Taberna del Puerto, buenas. ¿En qué puedo ayudarte?",
+    "prompt_file": "prompt_agente_voz.md",
+    "llm": "modelo rápido con buena llamada a herramientas",
+    "voice": "voz femenina/masculina española (castellano) de la biblioteca de ElevenLabs",
+    "tools": [
+      {
+        "type": "webhook",
+        "name": "consultar_calendario",
+        "description": "Devuelve la fecha y hora actuales del restaurante (Europe/Madrid) y las fechas de los próximos 8 días. Úsala antes de convertir 'mañana', 'el sábado', etc.",
+        "api_schema": {
+          "url": "https://lavenderblush-okapi-857486.hostingersite.com/webhook/reservas-voz",
+          "method": "POST",
+          "request_headers": {
+            "x-clave": "<<VALOR DE res_config.clave_voz (guárdalo como secreto en ElevenLabs)>>"
+          },
+          "request_body_schema": {
+            "type": "object",
+            "properties": {
+              "herramienta": {
+                "type": "string",
+                "description": "Nombre de la herramienta",
+                "constant_value": "consultar_calendario"
+              },
+              "caller_id": {
+                "type": "string",
+                "description": "Número que llama",
+                "dynamic_variable": "system__caller_id"
+              },
+              "call_id": {
+                "type": "string",
+                "description": "Id de la conversación",
+                "dynamic_variable": "system__conversation_id"
+              }
+            },
+            "required": [
+              "herramienta"
+            ]
+          }
+        }
+      },
+      {
+        "type": "webhook",
+        "name": "consultar_disponibilidad",
+        "description": "Comprueba con los datos reales si hay sitio. No reserva nada. Si no hay, devuelve alternativas verificadas.",
+        "api_schema": {
+          "url": "https://lavenderblush-okapi-857486.hostingersite.com/webhook/reservas-voz",
+          "method": "POST",
+          "request_headers": {
+            "x-clave": "<<VALOR DE res_config.clave_voz (guárdalo como secreto en ElevenLabs)>>"
+          },
+          "request_body_schema": {
+            "type": "object",
+            "properties": {
+              "herramienta": {
+                "type": "string",
+                "description": "Nombre de la herramienta",
+                "constant_value": "consultar_disponibilidad"
+              },
+              "caller_id": {
+                "type": "string",
+                "description": "Número que llama",
+                "dynamic_variable": "system__caller_id"
+              },
+              "call_id": {
+                "type": "string",
+                "description": "Id de la conversación",
+                "dynamic_variable": "system__conversation_id"
+              },
+              "fecha": {
+                "type": "string",
+                "description": "Fecha AAAA-MM-DD"
+              },
+              "hora": {
+                "type": "string",
+                "description": "Hora HH:MM 24 h"
+              },
+              "personas": {
+                "type": "number",
+                "description": "Número de comensales"
+              },
+              "zona": {
+                "type": "string",
+                "description": "Interior, Terraza o vacío si da igual"
+              }
+            },
+            "required": [
+              "herramienta",
+              "fecha",
+              "hora",
+              "personas"
+            ]
+          }
+        }
+      },
+      {
+        "type": "webhook",
+        "name": "crear_reserva",
+        "description": "Crea la reserva SOLO después de repetir los datos y obtener un sí explícito. Confirma al cliente únicamente si devuelve ok=true.",
+        "api_schema": {
+          "url": "https://lavenderblush-okapi-857486.hostingersite.com/webhook/reservas-voz",
+          "method": "POST",
+          "request_headers": {
+            "x-clave": "<<VALOR DE res_config.clave_voz (guárdalo como secreto en ElevenLabs)>>"
+          },
+          "request_body_schema": {
+            "type": "object",
+            "properties": {
+              "herramienta": {
+                "type": "string",
+                "description": "Nombre de la herramienta",
+                "constant_value": "crear_reserva"
+              },
+              "caller_id": {
+                "type": "string",
+                "description": "Número que llama",
+                "dynamic_variable": "system__caller_id"
+              },
+              "call_id": {
+                "type": "string",
+                "description": "Id de la conversación",
+                "dynamic_variable": "system__conversation_id"
+              },
+              "nombre": {
+                "type": "string",
+                "description": "Nombre de la reserva"
+              },
+              "fecha": {
+                "type": "string",
+                "description": "Fecha AAAA-MM-DD"
+              },
+              "hora": {
+                "type": "string",
+                "description": "Hora HH:MM"
+              },
+              "personas": {
+                "type": "number",
+                "description": "Comensales"
+              },
+              "zona": {
+                "type": "string",
+                "description": "Interior, Terraza o vacío"
+              },
+              "observaciones": {
+                "type": "string",
+                "description": "Alergias o peticiones; vacío si no hay"
+              },
+              "telefono_contacto": {
+                "type": "string",
+                "description": "Solo si el número está oculto: teléfono que dicta el cliente"
+              }
+            },
+            "required": [
+              "herramienta",
+              "nombre",
+              "fecha",
+              "hora",
+              "personas"
+            ]
+          }
+        }
+      },
+      {
+        "type": "webhook",
+        "name": "ver_mis_reservas",
+        "description": "Reservas futuras confirmadas del número desde el que llama el cliente.",
+        "api_schema": {
+          "url": "https://lavenderblush-okapi-857486.hostingersite.com/webhook/reservas-voz",
+          "method": "POST",
+          "request_headers": {
+            "x-clave": "<<VALOR DE res_config.clave_voz (guárdalo como secreto en ElevenLabs)>>"
+          },
+          "request_body_schema": {
+            "type": "object",
+            "properties": {
+              "herramienta": {
+                "type": "string",
+                "description": "Nombre de la herramienta",
+                "constant_value": "ver_mis_reservas"
+              },
+              "caller_id": {
+                "type": "string",
+                "description": "Número que llama",
+                "dynamic_variable": "system__caller_id"
+              },
+              "call_id": {
+                "type": "string",
+                "description": "Id de la conversación",
+                "dynamic_variable": "system__conversation_id"
+              }
+            },
+            "required": [
+              "herramienta"
+            ]
+          }
+        }
+      },
+      {
+        "type": "webhook",
+        "name": "modificar_reserva",
+        "description": "Cambia una reserva del número que llama (tras confirmación). Si no hay sitio, la reserva no cambia.",
+        "api_schema": {
+          "url": "https://lavenderblush-okapi-857486.hostingersite.com/webhook/reservas-voz",
+          "method": "POST",
+          "request_headers": {
+            "x-clave": "<<VALOR DE res_config.clave_voz (guárdalo como secreto en ElevenLabs)>>"
+          },
+          "request_body_schema": {
+            "type": "object",
+            "properties": {
+              "herramienta": {
+                "type": "string",
+                "description": "Nombre de la herramienta",
+                "constant_value": "modificar_reserva"
+              },
+              "caller_id": {
+                "type": "string",
+                "description": "Número que llama",
+                "dynamic_variable": "system__caller_id"
+              },
+              "call_id": {
+                "type": "string",
+                "description": "Id de la conversación",
+                "dynamic_variable": "system__conversation_id"
+              },
+              "reserva_actual": {
+                "type": "string",
+                "description": "Día y hora actuales 'AAAA-MM-DD HH:MM' (vacío si solo tiene una)"
+              },
+              "fecha": {
+                "type": "string",
+                "description": "Nueva fecha o vacío"
+              },
+              "hora": {
+                "type": "string",
+                "description": "Nueva hora o vacío"
+              },
+              "personas": {
+                "type": "number",
+                "description": "Nuevo número o 0"
+              },
+              "zona": {
+                "type": "string",
+                "description": "Nueva zona o vacío"
+              },
+              "observaciones": {
+                "type": "string",
+                "description": "Nuevas observaciones o vacío"
+              }
+            },
+            "required": [
+              "herramienta"
+            ]
+          }
+        }
+      },
+      {
+        "type": "webhook",
+        "name": "cancelar_reserva",
+        "description": "Cancela una reserva del número que llama (tras confirmación).",
+        "api_schema": {
+          "url": "https://lavenderblush-okapi-857486.hostingersite.com/webhook/reservas-voz",
+          "method": "POST",
+          "request_headers": {
+            "x-clave": "<<VALOR DE res_config.clave_voz (guárdalo como secreto en ElevenLabs)>>"
+          },
+          "request_body_schema": {
+            "type": "object",
+            "properties": {
+              "herramienta": {
+                "type": "string",
+                "description": "Nombre de la herramienta",
+                "constant_value": "cancelar_reserva"
+              },
+              "caller_id": {
+                "type": "string",
+                "description": "Número que llama",
+                "dynamic_variable": "system__caller_id"
+              },
+              "call_id": {
+                "type": "string",
+                "description": "Id de la conversación",
+                "dynamic_variable": "system__conversation_id"
+              },
+              "reserva_actual": {
+                "type": "string",
+                "description": "Día y hora 'AAAA-MM-DD HH:MM' (vacío si solo tiene una)"
+              }
+            },
+            "required": [
+              "herramienta"
+            ]
+          }
+        }
+      },
+      {
+        "type": "webhook",
+        "name": "registrar_transferencia",
+        "description": "Avisa al personal de que la llamada necesita a una persona. Llámala justo antes de transferir.",
+        "api_schema": {
+          "url": "https://lavenderblush-okapi-857486.hostingersite.com/webhook/reservas-voz",
+          "method": "POST",
+          "request_headers": {
+            "x-clave": "<<VALOR DE res_config.clave_voz (guárdalo como secreto en ElevenLabs)>>"
+          },
+          "request_body_schema": {
+            "type": "object",
+            "properties": {
+              "herramienta": {
+                "type": "string",
+                "description": "Nombre de la herramienta",
+                "constant_value": "registrar_transferencia"
+              },
+              "caller_id": {
+                "type": "string",
+                "description": "Número que llama",
+                "dynamic_variable": "system__caller_id"
+              },
+              "call_id": {
+                "type": "string",
+                "description": "Id de la conversación",
+                "dynamic_variable": "system__conversation_id"
+              },
+              "motivo": {
+                "type": "string",
+                "description": "Motivo breve"
+              },
+              "resumen": {
+                "type": "string",
+                "description": "Resumen de lo que pide el cliente"
+              }
+            },
+            "required": [
+              "herramienta",
+              "motivo"
+            ]
+          }
+        }
+      },
+      {
+        "type": "system",
+        "name": "transfer_to_number",
+        "description": "Transferir a una persona del restaurante cuando el cliente lo pide o no se puede resolver.",
+        "params": {
+          "transfers": [
+            {
+              "transfer_destination": {
+                "type": "phone",
+                "phone_number": "<<NÚMERO DEL RESTAURANTE/ENCARGADO, distinto del que desvía al agente>>"
+              },
+              "condition": "El cliente pide hablar con una persona, es un grupo grande, una queja o algo que no puedes resolver.",
+              "transfer_type": "conference"
+            }
+          ]
+        }
+      },
+      {
+        "type": "system",
+        "name": "end_call",
+        "description": "Colgar cuando la conversación ha terminado."
+      },
+      {
+        "type": "system",
+        "name": "language_detection",
+        "description": "Cambiar de idioma si el cliente habla otro."
+      }
+    ]
+  }
+}

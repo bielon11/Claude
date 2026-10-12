@@ -1,0 +1,7 @@
+{
+  "name": "reservas-motor-tests",
+  "private": true,
+  "description": "Pruebas locales de la lógica del Motor común de reservas (n8n)",
+  "scripts": { "test": "node motor.test.js" },
+  "dependencies": { "luxon": "3.7.2" }
+}
